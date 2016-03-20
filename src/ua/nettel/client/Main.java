@@ -75,10 +75,22 @@ public class Main {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		new Main ();
-		/*while (true) {
-			if ()
-		}*/
+		Main main = new Main ();
+		while (true) {
+			boolean flag = false;
+			if (main.isConect()) {
+				flag = true;
+			} else {
+				flag = false;
+			}
+			Main.mainActivity.activateWork (flag);
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				
+			}
+		}
 	}
 
 }

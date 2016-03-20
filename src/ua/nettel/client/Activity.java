@@ -27,11 +27,17 @@ public class Activity implements Runnable {
     //private final Properties locale;
     
     private Main main;
+    
+    private boolean flagOfActivateWork = false;
 
 	private JTextArea tHistoryMessages;
 	private JTextArea tNewMessage;
 
-	private JButton bSend; 
+	private JButton bSend;
+
+	private JButton bConnect;
+
+	private JButton bDisConnect; 
     
     public Activity (Main main) {
     	this.main = main;
@@ -41,6 +47,21 @@ public class Activity implements Runnable {
     public void printMessage (String text) {
     	tHistoryMessages.append(text);
     	tHistoryMessages.append("\n\n");
+    }
+    
+    public void activateWork (boolean flag) {
+    	if (flag != this.flagOfActivateWork ) {
+    		this.flagOfActivateWork = flag;
+    		if (flag) {
+    			bConnect.setEnabled(false);
+				bDisConnect.setEnabled(true);
+				if (tNewMessage.getText().length() > 0 ) bSend.setEnabled(true);
+    		} else {
+				bConnect.setEnabled(true);
+				bDisConnect.setEnabled(false);
+				bSend.setEnabled(false);
+    		}
+    	}
     }
     
 	@Override
@@ -77,11 +98,11 @@ public class Activity implements Runnable {
 		
 		JPanel buttonPanel = new JPanel ();
 		
-		final JButton bConnect = new JButton ();
+		bConnect = new JButton ();
 		bConnect.setText( Main.getLocaleText("button.connect") );
 		buttonPanel.add (bConnect);
 		
-		final JButton bDisConnect = new JButton ();
+		bDisConnect = new JButton ();
 		bDisConnect.setText( Main.getLocaleText("button.disconnect") );
 		buttonPanel.add (bDisConnect);
 		bDisConnect.setEnabled(false);
@@ -90,20 +111,20 @@ public class Activity implements Runnable {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				main.startConnect();
-				if (main.isConect()) {
-					bConnect.setEnabled(false);
-					bDisConnect.setEnabled(true);
-					if (tNewMessage.getText().length() > 0 ) bSend.setEnabled(true);
-				}
+//				if (main.isConect()) {
+//					bConnect.setEnabled(false);
+//					bDisConnect.setEnabled(true);
+//					if (tNewMessage.getText().length() > 0 ) bSend.setEnabled(true);
+//				}
 			}
 		});
 		bDisConnect.addActionListener(new ActionListener () {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				main.stopConnect();
-				bConnect.setEnabled(true);
-				bDisConnect.setEnabled(false);
-				bSend.setEnabled(false);
+//				bConnect.setEnabled(true);
+//				bDisConnect.setEnabled(false);
+//				bSend.setEnabled(false);
 			}
 		});
 		bSend.addActionListener(new ActionListener () {

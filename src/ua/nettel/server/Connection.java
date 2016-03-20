@@ -69,7 +69,7 @@ public class Connection implements Runnable{
 						this.send((Message)newPacket );
 					}
 					if (newPacket.getClass().equals(Command.class)) {
-						if ( ( (Command) newPacket ).getCommand() == Command.CONNECT_CLOSE ) {
+						if ( ( (Command) newPacket ).getCommand() == Command.CONNECT_CLOSE ) { //System.out.println("CONNECT_CLOSSED");
 							//String nickname = ( (Command) newPacket).getNickname();
 							Formatter message = new Formatter();
 							message.format(Server.getLocaleText("user.exit"), this.getNickname () );
