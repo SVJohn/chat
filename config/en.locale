@@ -1,0 +1,13 @@
+start.server = Server started on port: \%s
+stop.server = Server stoped
+
+server.name = Server
+
+connection.new = new connection. Client: \%s. The number of open connections: \%d
+connection.close = connection \%s\%s closed. The number of open connections: \%d
+
+killer.start = Killer closed connection started
+killer.connectin.closed = kill closed connection: \%s\%s. Not killed connections: \%d 
+
+user.new = \%s cames now
+user.exit = \%s exit
