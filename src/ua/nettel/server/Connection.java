@@ -14,10 +14,14 @@ import ua.nettel.packet.User;
 
 public class Connection implements Runnable{
 	
+	private static final int SERVIS_PERIOD = 2000;
+	
+	private boolean stoped = false;
+	
 	private String nickname;
+	private String IP;
 	
 	private Socket socket = null;
-	private String IP;
 	
 	private ObjectInputStream ois = null;
 	private ObjectOutputStream oos = null;
@@ -71,32 +75,47 @@ public class Connection implements Runnable{
 					if (newPacket.getClass().equals(Command.class)) {
 						if ( ( (Command) newPacket ).getCommand() == Command.CONNECT_CLOSE ) { //System.out.println("CONNECT_CLOSSED");
 							//String nickname = ( (Command) newPacket).getNickname();
-							Formatter message = new Formatter();
-							message.format(Server.getLocaleText("user.exit"), this.getNickname () );
-							this.send(new Message( Server.getLocaleText("server.name"), message.toString() ));
-							message.close();
+//							Formatter message = new Formatter();
+//							message.format(Server.getLocaleText("user.exit"), this.getNickname () );
+//							this.send(new Message( Server.getLocaleText("server.name"), message.toString() ));
+//							message.close();
+							
+							//sendServiceMassege(Server.getLocaleText("user.exit"));
+							
 							break;
 						}
 					}
 					if (newPacket.getClass().equals(User.class)) {
 						this.nickname = ( (User) newPacket).getNickname();
-						Formatter message = new Formatter();
-						message.format(Server.getLocaleText("user.new"), this.getNickname () );
-						this.send(new Message( Server.getLocaleText("server.name"), message.toString() ));
-						message.close();
+//						Formatter message = new Formatter();
+//						message.format(Server.getLocaleText("user.new"), this.getNickname () );
+//						this.send(new Message( Server.getLocaleText("server.name"), message.toString() ));
+//						message.close();
+						sendServiceMassege(Server.getLocaleText("user.new"));
 					}
 				}
 			}
 		} catch (Exception e) {
 			Server.printLog(e);
 		} finally {
-			stop ();
+			if (!this.stoped) {
+				this.stop();
+			}
 		}
 
 	}
 
-	private void stop () {					//добавить удаление connect из list
+	public void stop () {					
+		sendServiceMassege(Server.getLocaleText("user.exit"));
+		this.send(new Command(Server.getLocaleText("server.name"), Command.CONNECT_CLOSE));
+		
+		this.stoped = true;
 		try {
+			Thread.sleep(SERVIS_PERIOD);
+		} catch (InterruptedException e) {		}
+		
+		try {
+			
 			if (null != socket) {
 				socket.close();
 			}
@@ -121,6 +140,14 @@ public class Connection implements Runnable{
 
 		}
 	}
+	
+	public void sendServiceMassege (String format) {
+		Formatter message = new Formatter();
+		message.format(format, this.getNickname () );
+		this.send(new Message( Server.getLocaleText("server.name"), message.toString() ));
+		message.close();
+	}
+	
 	public void sendMe (Packet packet) {
 		try {
 			this.oos.writeObject(packet);
@@ -134,7 +161,7 @@ public class Connection implements Runnable{
 		return (null != oos );
 	}
 	public boolean isConnect () {
-		return (null != socket && !socket.isClosed() && null!= ois && null != oos);
+		return (!stoped && null != socket && !socket.isClosed() && null!= ois && null != oos);
 	}
 	
 }

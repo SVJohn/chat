@@ -13,6 +13,8 @@ import ua.nettel.packet.User;
 
 public class Connect implements Runnable {
 
+	private static final int SERVIS_PERIOD = 2000;
+	
 	private boolean stoped = false;
 
 	private Socket socket = null;
@@ -27,40 +29,45 @@ public class Connect implements Runnable {
 
 	@Override
 	public void run() {
-		if (isConnect()) {
-			try {
-				while (!stoped) {
-					Object tmp = ois.readObject();
-					if (null != tmp && (tmp instanceof Packet)) {
-						if (tmp.getClass().equals(Message.class)) {
-							// System.out.println( ((Message) tmp).toString() );
-							Main.printMessage((Message) tmp);
-						}
-						if (tmp.getClass().equals(Command.class)) {
-							if (((Command) tmp).getCommand() == Command.CONNECT_CLOSE) {
-								break;
-							}
 
-						}
+		try {
+			while (this.isConnect()) {// while (!stoped) {
+				Object tmp = ois.readObject();
+				if (null != tmp && (tmp instanceof Packet)) {
+					if (tmp.getClass().equals(Message.class)) {
+						// System.out.println( ((Message) tmp).toString() );
+						Main.printMessage((Message) tmp);
 					}
+					if (tmp.getClass().equals(Command.class)) {
+						if (((Command) tmp).getCommand() == Command.CONNECT_CLOSE) {
+							break;
+						}
 
+					}
 				}
-			} catch (Exception e) {
-				System.err.println(e);
-				
-			} finally {
-				if (!this.stoped) {
-					this.stop();
-				}
+
+			}
+		} catch (Exception e) {
+			System.err.println(e);
+
+		} finally {
+			if (!this.stoped) {
+				this.stop();
 			}
 		}
+
 	}
 
 	public void stop() {
 		this.send(new Command(user.getNickname(), Command.CONNECT_CLOSE));
 		this.stoped = true;
 		try {
-			Thread.sleep(2000);
+			Thread.sleep(SERVIS_PERIOD);
+		} catch (InterruptedException e) {
+			
+		}
+		try {
+			
 			
 			if (null != socket) {
 				socket.close();
@@ -71,7 +78,7 @@ public class Connect implements Runnable {
 			if (null != oos) {
 				oos.close();
 			}
-		} catch (IOException | InterruptedException e) {
+		} catch (IOException e) {
 			System.err.println(e);
 			
 		} finally {
@@ -100,6 +107,7 @@ public class Connect implements Runnable {
 		this.port = port;
 		this.user = user;
 		socket = new Socket();
+		System.out.printf(Main.getLocaleText("connection.start"));
 		try {
 			socket.connect(new InetSocketAddress(this.host, this.port));
 

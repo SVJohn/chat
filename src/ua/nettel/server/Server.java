@@ -75,6 +75,7 @@ public class Server {
 				Connection newConect = new Connection (socket, connections);
 				connections.add (newConect);
 				new Thread(newConect).start();
+				
 			}
 	
 		} finally {
