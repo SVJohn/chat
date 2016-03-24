@@ -42,7 +42,10 @@ public class Connect implements Runnable {
 						if (((Command) tmp).getCommand() == Command.CONNECT_CLOSE) {
 							break;
 						}
-
+					
+					}
+					if (tmp.getClass().equals(User.class)){
+						Main.printMessage( (User)tmp);
 					}
 				}
 

@@ -74,24 +74,15 @@ public class Connection implements Runnable{
 					}
 					if (newPacket.getClass().equals(Command.class)) {
 						if ( ( (Command) newPacket ).getCommand() == Command.CONNECT_CLOSE ) { //System.out.println("CONNECT_CLOSSED");
-							//String nickname = ( (Command) newPacket).getNickname();
-//							Formatter message = new Formatter();
-//							message.format(Server.getLocaleText("user.exit"), this.getNickname () );
-//							this.send(new Message( Server.getLocaleText("server.name"), message.toString() ));
-//							message.close();
-							
-							//sendServiceMassege(Server.getLocaleText("user.exit"));
-							
+						
 							break;
 						}
 					}
 					if (newPacket.getClass().equals(User.class)) {
 						this.nickname = ( (User) newPacket).getNickname();
-//						Formatter message = new Formatter();
-//						message.format(Server.getLocaleText("user.new"), this.getNickname () );
-//						this.send(new Message( Server.getLocaleText("server.name"), message.toString() ));
-//						message.close();
-						sendServiceMassege(Server.getLocaleText("user.new"));
+
+						//sendServiceMassege(Server.getLocaleText("user.new"));
+						sendUser (User.COMMAND_ADD);
 					}
 				}
 			}
@@ -105,8 +96,9 @@ public class Connection implements Runnable{
 
 	}
 
-	public void stop () {					
-		sendServiceMassege(Server.getLocaleText("user.exit"));
+	private void stop () {	
+		sendUser (User.COMMAND_DEL);
+		//sendServiceMassege(Server.getLocaleText("user.exit"));
 		this.send(new Command(Server.getLocaleText("server.name"), Command.CONNECT_CLOSE));
 		
 		this.stoped = true;
@@ -141,6 +133,14 @@ public class Connection implements Runnable{
 		}
 	}
 	
+	private void sendUser (int command){
+		this.send(
+				new User(this.getNickname(),
+						command
+						));
+	}
+	
+	@Deprecated
 	public void sendServiceMassege (String format) {
 		Formatter message = new Formatter();
 		message.format(format, this.getNickname () );

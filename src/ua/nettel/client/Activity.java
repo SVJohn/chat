@@ -5,20 +5,27 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Set;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 public class Activity implements Runnable {
+	
+	private static final int SERVIS_PERIOD = 1000;
 	
 	private final String  titleFrame = "NetTel";
 	
@@ -32,12 +39,20 @@ public class Activity implements Runnable {
 
 	private JTextArea tHistoryMessages;
 	private JTextArea tNewMessage;
+	
+	private JList<String> viewServers;
 
 	private JButton bSend;
 
 	private JButton bConnect;
 
-	private JButton bDisConnect; 
+	private JButton bDisConnect;
+
+	private JFrame mainFrame;
+
+	private JPanel serversPanel;
+
+	private Box boxServers; 
     
     public Activity (Main main) {
     	this.main = main;
@@ -66,7 +81,7 @@ public class Activity implements Runnable {
     
 	@Override
 	public void run() {
-		JFrame mainFrame = new JFrame();
+		mainFrame = new JFrame();
 		mainFrame.setTitle(titleFrame);
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		mainFrame.setPreferredSize(new Dimension(width, height));
@@ -142,12 +157,25 @@ public class Activity implements Runnable {
 		tHistoryMessages.getDocument().addDocumentListener(new ListererHistoryMessage ());
 		tNewMessage.getDocument().addDocumentListener(new ListenerFieldNewMessager () );
 		
+		
+		boxServers = Box.createVerticalBox();
+		boxServers.setBorder(new TitledBorder(Main.getLocaleText("title.ServersPanel")));
+		
+//		serversPanel = new JPanel();
+//		serversPanel.setLayout(new BoxLayout(serversPanel, BoxLayout.PAGE_AXIS));
+//		setTitle(serversPanel, 
+//				Main.getLocaleText("title.ServersPanel"));
+		
+		new Thread(new LoadingServers()).start();
+		
 		BorderLayout mBLayout = new BorderLayout(); 
 		Container cntPane = mainFrame.getContentPane();
 		cntPane.setLayout(mBLayout);
 		cntPane.add (messagesPane, BorderLayout.CENTER);
 		cntPane.add(buttonPanel, BorderLayout.SOUTH);
-		
+		cntPane.add(boxServers, BorderLayout.WEST);
+		//cntPane.add(serversPanel, BorderLayout.WEST);
+		//cntPane.add(viewServers, BorderLayout.WEST);
 		
 		mainFrame.pack();
 		mainFrame.setLocationRelativeTo(null);
@@ -157,6 +185,12 @@ public class Activity implements Runnable {
 	// public static void main(String[] args) {
 	//
 	// }
+	@Deprecated
+	private void setTitle (JPanel panel, String title) {
+		JLabel titleLabel = new JLabel(title);
+		panel.add(titleLabel);
+	}
+	
 	
 	class ListererHistoryMessage implements DocumentListener{
 
@@ -219,5 +253,50 @@ public class Activity implements Runnable {
 
 			});
 		}
+	}
+	class LoadingServers implements Runnable {
+
+		
+		
+
+		@Override
+		public void run() {
+			JLabel loadingInfo = new JLabel(Main.getLocaleText("loadind.info"));
+			boxServers.add(loadingInfo);
+			while (!Main.isLoadServers()) {
+
+				try {
+					Thread.sleep(SERVIS_PERIOD);
+				} catch (InterruptedException e) {
+				}
+			}
+			Set<String> servers = Main.getServers();
+			String[] arrayServers = {};
+			arrayServers = servers.toArray(new String[servers.size()]);
+			viewServers = new JList<String>(arrayServers);
+			viewServers.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+			boxServers.remove(loadingInfo);
+			boxServers.add(new JScrollPane(viewServers));
+			mainFrame.pack();
+		}
+//		public void run() {
+//			JLabel loadingInfo = new JLabel(Main.getLocaleText("loadind.info"));
+//			serversPanel.add(loadingInfo);
+//			while (!Main.isLoadServers()){
+//				
+//				try {
+//					Thread.sleep(SERVIS_PERIOD);
+//				} catch (InterruptedException e) {		}
+//			}
+//			Set <String> servers = Main.getServers();
+//			String[] arrayServers = {};
+//			arrayServers = servers.toArray(new String[servers.size()]);
+//			viewServers = new JList<String>(arrayServers);
+//			viewServers.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+//			serversPanel.remove(loadingInfo);
+//			serversPanel.add( new JScrollPane (viewServers));
+//			mainFrame.pack();
+//		}
+		
 	}
 }

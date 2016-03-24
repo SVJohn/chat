@@ -1,15 +1,14 @@
 package ua.nettel.packet;
 
 import java.io.Serializable;
-import java.util.Date;
 
 public class Message extends Packet implements Serializable{
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 2L;
 
-	private final Date date = new Date();
+	
 	
 	private final String message;
 	
@@ -23,12 +22,9 @@ public class Message extends Packet implements Serializable{
 
 	@Override
 	public String toString (){
-		return date.toString()+"::"+getNickname() + "::" +this.message;
+		return this.getDate().toString()+"::"+getNickname() + "::" +this.message;
 	}
 
-	public Date getDate () {
-		return (Date) date.clone(); 
-	}
 	public String getMassage () {
 		return this.message;
 	}
