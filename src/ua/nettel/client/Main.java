@@ -13,10 +13,11 @@ import ua.nettel.packet.Message;
 import ua.nettel.packet.User;
 
 public class Main {
-
+	
 	private static final String CONFIG_FILE = "config.properties";	
 	private static final String LOCALE_KEY = "file.locale";
 	private static final String NICKNAME_KEY = "nickname";
+	private static final String SERVER_DEFAULT_KEY = "server.default";
 	
 	//private static final String SERVERS_LIST_FILE = "server";
 	//private static Set <String> servers;
@@ -31,10 +32,10 @@ public class Main {
 	private static Activity mainActivity;
 	
 	public static boolean isLoadServers () {
-		return Servers.getInstance().isDone();
+		return ServersLoader.getInstance().isDone();
 	}
-	public static Set <String> getServers () {
-		return Servers.getInstance().getServers();
+	public static Set <Server> getServers () {
+		return ServersLoader.getInstance().getServers();
 	}
 	
 	@Deprecated
@@ -46,10 +47,19 @@ public class Main {
 		return Main.locale.getProperty(name);
 	}
 	
+	private static Server getServerInfo () {
+		return Main.mainActivity.getSelectServer();
+		//return new Server (Main.mainActivity.getSelectServer());
+		
+	}
+	
 	public void startConnect () {
+//		this.connect = new Connect (this.user,
+//									config.getProperty("server.host"), 
+//									Integer.parseInt(config.getProperty("server.port")) );
+		
 		this.connect = new Connect (this.user,
-									config.getProperty("server.host"), 
-									Integer.parseInt(config.getProperty("server.port")) );
+				Main.getServerInfo() );							
 		new Thread (connect).start(); 
 	}
 	public void stopConnect () {
@@ -98,6 +108,10 @@ public class Main {
 		formatter.close();		
 		//Main.mainActivity.printMessage(message);
 		
+	}
+	
+	public static Server getDefaultServer () {
+		return new Server(config.getProperty(SERVER_DEFAULT_KEY));
 	}
 	
 	private void build () {

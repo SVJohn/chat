@@ -105,7 +105,15 @@ public class Connect implements Runnable {
 		return false;
 	}
 
+	public Connect (User user, Server server) {
+		this.toConnect(user, server.getHost(), server.getPort());
+	}
+	@Deprecated
 	public Connect(User user, String host, int port) {
+		this.toConnect (user, host, port);
+		
+	}
+	private void toConnect (User user, String host, int port) {
 		this.host = host;
 		this.port = port;
 		this.user = user;

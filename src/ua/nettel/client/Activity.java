@@ -10,6 +10,7 @@ import java.util.Set;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -17,31 +18,40 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+
 public class Activity implements Runnable {
 	
 	private static final int SERVIS_PERIOD = 1000;
-	
 	private final String  titleFrame = "NetTel";
 	
     private final int width = 800;
     private final int height = 400;
-    //private final Properties locale;
-    
+        
     private Main main;
     
     private boolean flagOfActivateWork = false;
-
+    
+    //private boolean selectedServer = false;
+    private static int indexDefaultServer;
+    
 	private JTextArea tHistoryMessages;
 	private JTextArea tNewMessage;
 	
+//	private JList<String> viewServers;
+//	private ListModel<String> modelListServers = new DefaultListModel<>();
 	private JList<String> viewServers;
-
+	private ListModel<String> modelListServers = new DefaultListModel<>();
+	
+	
 	private JButton bSend;
 
 	private JButton bConnect;
@@ -50,9 +60,9 @@ public class Activity implements Runnable {
 
 	private JFrame mainFrame;
 
-	private JPanel serversPanel;
+	private Box boxServers;
 
-	private Box boxServers; 
+ 
     
     public Activity (Main main) {
     	this.main = main;
@@ -64,6 +74,17 @@ public class Activity implements Runnable {
     	tHistoryMessages.append("\n\n");
     }
     
+//    private boolean isSelectedServer () {
+//    	return selectedServer;
+//    }
+    
+    public Server getSelectServer () {
+    	int index = viewServers.getSelectedIndex();
+    	//return viewServers.getModel().getElementAt(index);
+    	return new Server (viewServers.getModel().getElementAt(index));
+    }
+    
+    
     public void activateWork (boolean flag) {
     	if (flag != this.flagOfActivateWork ) {
     		this.flagOfActivateWork = flag;
@@ -71,10 +92,12 @@ public class Activity implements Runnable {
     			bConnect.setEnabled(false);
 				bDisConnect.setEnabled(true);
 				if (tNewMessage.getText().length() > 0 ) bSend.setEnabled(true);
+				viewServers.setEnabled(false);
     		} else {
 				bConnect.setEnabled(true);
 				bDisConnect.setEnabled(false);
 				bSend.setEnabled(false);
+				viewServers.setEnabled(true);
     		}
     	}
     }
@@ -89,8 +112,7 @@ public class Activity implements Runnable {
 		
 		tHistoryMessages = new JTextArea ();
 		tHistoryMessages.setEditable(false);
-		//tHistoryMessages.setText( (new Message("Hello").toString()) );
-		
+				
 		tNewMessage = new JTextArea ();
 		tNewMessage.setRows(2);													//почему-то не работает(
 		tNewMessage.setEditable(true);
@@ -106,7 +128,7 @@ public class Activity implements Runnable {
 		messagesPane.add (new JScrollPane(tNewMessage));
 		messagesPane.add (Box.createRigidArea(new Dimension (0, 10)));
 		bSend = new JButton ();
-		//bSend.setText( locale.getProperty("button.send") );
+		
 		bSend.setText( Main.getLocaleText("button.send") );
 		bSend.setEnabled(false);
 		messagesPane.add (bSend);
@@ -116,6 +138,7 @@ public class Activity implements Runnable {
 		bConnect = new JButton ();
 		bConnect.setText( Main.getLocaleText("button.connect") );
 		buttonPanel.add (bConnect);
+	//	bConnect.setEnabled(false);
 		
 		bDisConnect = new JButton ();
 		bDisConnect.setText( Main.getLocaleText("button.disconnect") );
@@ -160,12 +183,29 @@ public class Activity implements Runnable {
 		
 		boxServers = Box.createVerticalBox();
 		boxServers.setBorder(new TitledBorder(Main.getLocaleText("title.ServersPanel")));
-		
-//		serversPanel = new JPanel();
-//		serversPanel.setLayout(new BoxLayout(serversPanel, BoxLayout.PAGE_AXIS));
-//		setTitle(serversPanel, 
-//				Main.getLocaleText("title.ServersPanel"));
-		
+
+		viewServers = new JList<String> (modelListServers);
+        viewServers.addListSelectionListener(new ListSelectionListener() {
+            
+
+			public void valueChanged(ListSelectionEvent e) {
+                int index = viewServers.getSelectedIndex();
+/*            	if ( index >= 0) {
+//                    String[] server = viewServers.getModel().getElementAt(index).split(SEPARATOR);
+//                    System.out.println(server.length);
+//                    for (String s: server) System.out.println(s);
+                    //selectedServer = true;
+                    //bConnect.setEnabled(true);
+                } else {
+                	//selectedServer = false;
+                	//bConnect.setEnabled(false);
+                }
+*/            
+                if (index <0 ) viewServers.setSelectedIndex(indexDefaultServer);
+                }
+        });
+		boxServers.add(new JScrollPane(viewServers));
+		viewServers.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		new Thread(new LoadingServers()).start();
 		
 		BorderLayout mBLayout = new BorderLayout(); 
@@ -174,22 +214,13 @@ public class Activity implements Runnable {
 		cntPane.add (messagesPane, BorderLayout.CENTER);
 		cntPane.add(buttonPanel, BorderLayout.SOUTH);
 		cntPane.add(boxServers, BorderLayout.WEST);
-		//cntPane.add(serversPanel, BorderLayout.WEST);
-		//cntPane.add(viewServers, BorderLayout.WEST);
 		
 		mainFrame.pack();
 		mainFrame.setLocationRelativeTo(null);
 		mainFrame.setVisible(true);
 	}
+	
 
-	// public static void main(String[] args) {
-	//
-	// }
-	@Deprecated
-	private void setTitle (JPanel panel, String title) {
-		JLabel titleLabel = new JLabel(title);
-		panel.add(titleLabel);
-	}
 	
 	
 	class ListererHistoryMessage implements DocumentListener{
@@ -254,10 +285,8 @@ public class Activity implements Runnable {
 			});
 		}
 	}
+	
 	class LoadingServers implements Runnable {
-
-		
-		
 
 		@Override
 		public void run() {
@@ -270,33 +299,29 @@ public class Activity implements Runnable {
 				} catch (InterruptedException e) {
 				}
 			}
-			Set<String> servers = Main.getServers();
-			String[] arrayServers = {};
-			arrayServers = servers.toArray(new String[servers.size()]);
-			viewServers = new JList<String>(arrayServers);
-			viewServers.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-			boxServers.remove(loadingInfo);
-			boxServers.add(new JScrollPane(viewServers));
-			mainFrame.pack();
-		}
-//		public void run() {
-//			JLabel loadingInfo = new JLabel(Main.getLocaleText("loadind.info"));
-//			serversPanel.add(loadingInfo);
-//			while (!Main.isLoadServers()){
-//				
-//				try {
-//					Thread.sleep(SERVIS_PERIOD);
-//				} catch (InterruptedException e) {		}
-//			}
-//			Set <String> servers = Main.getServers();
-//			String[] arrayServers = {};
-//			arrayServers = servers.toArray(new String[servers.size()]);
+			
+			Set<Server> servers = Main.getServers();
+			Server[] arrayServers = {};
+			arrayServers = servers.toArray(new Server[servers.size()]);
 //			viewServers = new JList<String>(arrayServers);
 //			viewServers.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-//			serversPanel.remove(loadingInfo);
-//			serversPanel.add( new JScrollPane (viewServers));
-//			mainFrame.pack();
-//		}
+			DefaultListModel <String> model = (DefaultListModel<String>) modelListServers;
+			
+			for (Server elm:arrayServers) {
+				model.addElement(elm.toString());
+				int index = model.size() - 1;
+                if (elm.equals( Main.getDefaultServer())) {
+                	viewServers.setSelectedIndex(index);
+                	indexDefaultServer = index; 
+                }
+                viewServers.ensureIndexIsVisible(index);
+			}
+			boxServers.remove(loadingInfo);
+//			boxServers.add(new JScrollPane(viewServers));
+			mainFrame.pack();
+			
+		}
+
 		
 	}
 }

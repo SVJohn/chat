@@ -13,24 +13,24 @@ import java.util.TreeSet;
  * Singleton
  * 
  */
-public class Servers {
+public class ServersLoader {
 	
-	private static Servers serversReader = null;
+	private static ServersLoader serversReader = null;
 	
-	private static Set <String> servers;
+	private static Set <Server> servers;
 	
-	private static boolean loading = false;
+	private static boolean complete = false;
 	
 	private static final String SERVERS_FILE = "servers";
 	
-	private Servers (){
+	private ServersLoader (){
 		serversReader = this;
 		new Thread(getRun()).start();
 	}
-	public static Servers getInstance (){
+	public static ServersLoader getInstance (){
 		if (null != serversReader) return serversReader;
 		   else {
-			   serversReader = new Servers(); 
+			   serversReader = new ServersLoader(); 
 			   return serversReader;
 		   }
 	}
@@ -44,11 +44,11 @@ public class Servers {
 				try {
 					reader = new LineNumberReader(new FileReader(SERVERS_FILE));
 			        String line = null;
-			        servers = new TreeSet <String>();
+			        servers = new TreeSet <Server>();
 			        while ((line = reader.readLine()) !=null) {
-			            servers.add(line);
+			            servers.add(new Server(line));
 			        }
-			        loading = true;
+			        complete = true;
 				} catch (IOException e) {
 					
 					e.printStackTrace();
@@ -60,10 +60,10 @@ public class Servers {
 		
 	}
 
-	public Set <String> getServers () {			
+	public Set <Server> getServers () {			
 		return servers; //Servers.getInstance().servers;
 	}
 	public boolean isDone () {
-		return loading;
+		return complete;
 	}
 }
