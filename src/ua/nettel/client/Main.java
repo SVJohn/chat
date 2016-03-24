@@ -29,7 +29,7 @@ public class Main {
 	private static Properties config;
 	private User user;
 
-	private static Activity mainActivity;
+	private static MainView mainView;
 	
 	public static boolean isLoadServers () {
 		return ServersLoader.getInstance().isDone();
@@ -48,7 +48,7 @@ public class Main {
 	}
 	
 	private static Server getServerInfo () {
-		return Main.mainActivity.getSelectServer();
+		return Main.mainView.getSelectServer();
 		//return new Server (Main.mainActivity.getSelectServer());
 		
 	}
@@ -104,7 +104,7 @@ public class Main {
 		Formatter formatter = new Formatter();
 		if (null == nickname ) nickname ="\t";
 		formatter.format(Main.getLocaleText("message"), date, nickname, message);
-		Main.mainActivity.printMessage(formatter.toString());
+		Main.mainView.printMessage(formatter.toString());
 		formatter.close();		
 		//Main.mainActivity.printMessage(message);
 		
@@ -129,8 +129,8 @@ public class Main {
 
 		
 		this.user = new User (config.getProperty(NICKNAME_KEY));
-		Main.mainActivity =  new Activity(this);						//переписать активити на использование статического маина
-		SwingUtilities.invokeLater( mainActivity );
+		Main.mainView =  new MainView(this);						//переписать активити на использование статического маина
+		SwingUtilities.invokeLater( mainView );
 	}
 	
 	public Main () {
@@ -149,7 +149,7 @@ public class Main {
 			} else {
 				flag = false;
 			}
-			Main.mainActivity.activateWork (flag);
+			Main.mainView.activateWork (flag);
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {

@@ -26,6 +26,7 @@ public class User extends Packet implements Serializable{
 	public void setCommand (int command) {
 		this.command = command;
 	}
+	
 	public int getCommand () {
 		return this.command;
 	}

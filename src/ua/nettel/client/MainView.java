@@ -28,9 +28,15 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-public class Activity implements Runnable {
+public class MainView implements Runnable {
 	
 	private static final int SERVIS_PERIOD = 1000;
+	
+	private static final String KEY_TITLE_SERVERS_LIST = "title.ServersPanel";
+	private static final String KEY_TITLE_HISTORY = "title.MessageHistory";
+	private static final String KEY_TITLE_MESSAGE = "title.newMessage";
+	private static final String KEY_TITLE_USERS = "title.users";
+	
 	private final String  titleFrame = "NetTel";
 	
     private final int width = 800;
@@ -64,7 +70,7 @@ public class Activity implements Runnable {
 
  
     
-    public Activity (Main main) {
+    public MainView (Main main) {
     	this.main = main;
     	//this.locale = Main.getLocale();
     }
@@ -109,23 +115,30 @@ public class Activity implements Runnable {
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		mainFrame.setPreferredSize(new Dimension(width, height));
 		
-		
 		tHistoryMessages = new JTextArea ();
 		tHistoryMessages.setEditable(false);
+		
+		Box bHistoryMessages = Box.createVerticalBox();
+		bHistoryMessages.setBorder(new TitledBorder(Main.getLocaleText(KEY_TITLE_HISTORY)));
+		bHistoryMessages.add(new JScrollPane (tHistoryMessages));
 				
 		tNewMessage = new JTextArea ();
 		tNewMessage.setRows(2);													//почему-то не работает(
 		tNewMessage.setEditable(true);
 		tNewMessage.setWrapStyleWord(true);
 		tNewMessage.setLineWrap(true);
-		tNewMessage.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));  //.createLineBorder(Color.GRAY)); 						//
+		tNewMessage.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));  //.createLineBorder(Color.GRAY)); 						
+		
+		Box bNewMessage = Box.createVerticalBox();
+		bNewMessage.setBorder(new TitledBorder(Main.getLocaleText(KEY_TITLE_MESSAGE)));
+		bNewMessage.add(new JScrollPane (tNewMessage));
 		
 		JPanel messagesPane = new JPanel ();
 		
 		messagesPane.setLayout(new BoxLayout(messagesPane, BoxLayout.PAGE_AXIS));
-		messagesPane.add (new JScrollPane (tHistoryMessages));
+		messagesPane.add (bHistoryMessages);
 		messagesPane.add (Box.createRigidArea(new Dimension (0, 10)));
-		messagesPane.add (new JScrollPane(tNewMessage));
+		messagesPane.add (bNewMessage);
 		messagesPane.add (Box.createRigidArea(new Dimension (0, 10)));
 		bSend = new JButton ();
 		
@@ -182,7 +195,7 @@ public class Activity implements Runnable {
 		
 		
 		boxServers = Box.createVerticalBox();
-		boxServers.setBorder(new TitledBorder(Main.getLocaleText("title.ServersPanel")));
+		boxServers.setBorder(new TitledBorder(Main.getLocaleText(KEY_TITLE_SERVERS_LIST)));
 
 		viewServers = new JList<String> (modelListServers);
         viewServers.addListSelectionListener(new ListSelectionListener() {
@@ -204,9 +217,14 @@ public class Activity implements Runnable {
                 if (index <0 ) viewServers.setSelectedIndex(indexDefaultServer);
                 }
         });
+        
 		boxServers.add(new JScrollPane(viewServers));
 		viewServers.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		new Thread(new LoadingServers()).start();
+		
+		Box bUsers = Box.createVerticalBox();
+		bUsers.setBorder(new TitledBorder(Main.getLocaleText(KEY_TITLE_USERS)));
+		
 		
 		BorderLayout mBLayout = new BorderLayout(); 
 		Container cntPane = mainFrame.getContentPane();
@@ -244,6 +262,7 @@ public class Activity implements Runnable {
 		}
 		
 	}
+	
 	class ListenerFieldNewMessager implements DocumentListener {
 
 		@Override
