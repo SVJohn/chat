@@ -18,11 +18,14 @@ public class Main {
 	private static final String LOCALE_KEY = "file.locale";
 	private static final String NICKNAME_KEY = "nickname";
 	private static final String SERVER_DEFAULT_KEY = "server.default";
+	private static final String FORMAT_MESSAGE = "message";
 	
 	//private static final String SERVERS_LIST_FILE = "server";
 	//private static Set <String> servers;
-	
+		
 	private static Properties locale;
+	private static String KEY_BY = "message.by";
+	private static String KEY_SERVER_NAME = "server.name";
 	
 	private Connect connect = null;
 
@@ -96,14 +99,14 @@ public class Main {
 			message.close();
 			return;	
 		}
-		Main.printMessage (user.getDate(), null, message.toString());
+		Main.printMessage (user.getDate(), Main.getLocaleText(KEY_SERVER_NAME), message.toString());
 		message.close();
 	}
 	
 	public static void printMessage (Date date, String nickname, String message){
 		Formatter formatter = new Formatter();
 		if (null == nickname ) nickname ="\t";
-		formatter.format(Main.getLocaleText("message"), date, nickname, message);
+		formatter.format(config.getProperty(FORMAT_MESSAGE), date, Main.getLocaleText(KEY_BY), nickname, message);
 		Main.mainView.printMessage(formatter.toString());
 		formatter.close();		
 		//Main.mainActivity.printMessage(message);

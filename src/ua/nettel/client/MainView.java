@@ -5,6 +5,9 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+//import java.awt.event.WindowAdapter;
+//import java.awt.event.WindowEvent;
 import java.util.Set;
 
 import javax.swing.BorderFactory;
@@ -111,6 +114,7 @@ public class MainView implements Runnable {
 	@Override
 	public void run() {
 		mainFrame = new JFrame();
+		
 		mainFrame.setTitle(titleFrame);
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		mainFrame.setPreferredSize(new Dimension(width, height));
@@ -127,7 +131,8 @@ public class MainView implements Runnable {
 		tNewMessage.setEditable(true);
 		tNewMessage.setWrapStyleWord(true);
 		tNewMessage.setLineWrap(true);
-		tNewMessage.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));  //.createLineBorder(Color.GRAY)); 						
+		tNewMessage.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));  //.createLineBorder(Color.GRAY));
+		
 		
 		Box bNewMessage = Box.createVerticalBox();
 		bNewMessage.setBorder(new TitledBorder(Main.getLocaleText(KEY_TITLE_MESSAGE)));
@@ -140,10 +145,11 @@ public class MainView implements Runnable {
 		messagesPane.add (Box.createRigidArea(new Dimension (0, 10)));
 		messagesPane.add (bNewMessage);
 		messagesPane.add (Box.createRigidArea(new Dimension (0, 10)));
-		bSend = new JButton ();
 		
+		bSend = new JButton ();
 		bSend.setText( Main.getLocaleText("button.send") );
 		bSend.setEnabled(false);
+		bSend.setMnemonic(KeyEvent.VK_ENTER);										// key: ALT + Enter
 		messagesPane.add (bSend);
 		
 		JPanel buttonPanel = new JPanel ();
@@ -162,20 +168,13 @@ public class MainView implements Runnable {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				main.startConnect();
-//				if (main.isConect()) {
-//					bConnect.setEnabled(false);
-//					bDisConnect.setEnabled(true);
-//					if (tNewMessage.getText().length() > 0 ) bSend.setEnabled(true);
-//				}
+				tNewMessage.requestFocus();
 			}
 		});
 		bDisConnect.addActionListener(new ActionListener () {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				main.stopConnect();
-//				bConnect.setEnabled(true);
-//				bDisConnect.setEnabled(false);
-//				bSend.setEnabled(false);
 			}
 		});
 		bSend.addActionListener(new ActionListener () {
@@ -185,6 +184,7 @@ public class MainView implements Runnable {
 				if (null != tmpMessage && !tmpMessage.equals("") ) {
 					main.send(tmpMessage);
 					tNewMessage.setText(null);
+					tNewMessage.requestFocus();
 					
 				}
 			}
@@ -203,17 +203,6 @@ public class MainView implements Runnable {
 
 			public void valueChanged(ListSelectionEvent e) {
                 int index = viewServers.getSelectedIndex();
-/*            	if ( index >= 0) {
-//                    String[] server = viewServers.getModel().getElementAt(index).split(SEPARATOR);
-//                    System.out.println(server.length);
-//                    for (String s: server) System.out.println(s);
-                    //selectedServer = true;
-                    //bConnect.setEnabled(true);
-                } else {
-                	//selectedServer = false;
-                	//bConnect.setEnabled(false);
-                }
-*/            
                 if (index <0 ) viewServers.setSelectedIndex(indexDefaultServer);
                 }
         });
@@ -232,6 +221,13 @@ public class MainView implements Runnable {
 		cntPane.add (messagesPane, BorderLayout.CENTER);
 		cntPane.add(buttonPanel, BorderLayout.SOUTH);
 		cntPane.add(boxServers, BorderLayout.WEST);
+		
+//		mainFrame.addWindowListener( new WindowAdapter() {						//фокус на tNewMessage при загрузке JFrame 
+//		    public void windowOpened( WindowEvent e ){
+//		        tNewMessage.requestFocus();
+//		    }
+//		});
+		
 		
 		mainFrame.pack();
 		mainFrame.setLocationRelativeTo(null);
@@ -270,18 +266,7 @@ public class MainView implements Runnable {
 
 		@Override
 		public void insertUpdate(DocumentEvent e) {		
-/*			SwingUtilities.invokeLater(new Runnable()  {
-				@Override
-				public void run() {
-					System.out.println(tNewMessage.getText().length());
-					if (null != tNewMessage.getText() && !tNewMessage.getText().equals("") && main.isConect()) {
-						bSend.setEnabled(true);
-					} else {
-						bSend.setEnabled(false);
-					}
-				}
-				
-			});*/
+
 			SwingUtilities.invokeLater(new Runnable()  {
 				@Override
 				public void run() {
