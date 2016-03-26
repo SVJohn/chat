@@ -120,17 +120,19 @@ public class MainView implements Runnable {
     	}
     }
     
-    public void addInListUsers (String userNickName){
+    public void addInListUsers (String user){
     	//if (null == modelListUsers) modelListUsers = new DefaultListModel <>();
     	DefaultListModel <String> model = (DefaultListModel <String>) modelListUsers;
-    	model.addElement(userNickName.toString());
+    	model.addElement(user);
 		int index = model.size() - 1;
         viewUsers.ensureIndexIsVisible(index);
     	
     }
-    public void removeInListUsers (String userNickName){
-    
+    public void removeInListUsers (String user){
+    	DefaultListModel <String> model = (DefaultListModel <String>) modelListUsers;
+    	model.removeElement(user);
     }
+    
 	@Override
 	public void run() {
 		mainFrame = new JFrame();

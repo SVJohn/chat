@@ -93,7 +93,8 @@ public class Main {
 		switch ( user.getCommand() ) {
 		case User.COMMAND_DEL:
 			message.format(Main.getLocaleText(Main.KEY_USER_EXIT), user.getNickname () );
-			if ( user.equals( Main.getUser().toString() ) ){
+			System.out.println(user.toString());
+			if ( user.toString().equals( Main.getUser().toString() ) ){
 				break;
 			} else {
 				Main.mainView.removeInListUsers(user.toString());
@@ -101,6 +102,7 @@ public class Main {
 			}
 		case User.COMMAND_ADD:
 			message.format(Main.getLocaleText(Main.KEY_USER_NEW), user.getNickname () );
+			Main.mainView.addInListUsers (user.toString());
 			break;
 
 		case User.COMMAND_ADD_OLD:

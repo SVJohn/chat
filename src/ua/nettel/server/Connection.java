@@ -85,12 +85,14 @@ public class Connection implements Runnable{
 						//this.nickname = ( (User) newPacket).getNickname();
 						
 						//sendServiceMassege(Server.getLocaleText("user.new"));
+						//sendUser (User.COMMAND_ADD);
 						this.user  = (User) newPacket;
 						this.user.setIP( socket.getInetAddress() ); 
 						
 						Server.printLog (Server.getLocaleText("connection.new"), this.getNickname(), this.getIP (), Server.getCountConnections()); //+":" + port);
 						
-						sendUser (User.COMMAND_ADD);
+						this.user.setCommand(User.COMMAND_ADD);
+						sendUser();
 						sendListUsers ();
 						
 					}
@@ -107,7 +109,9 @@ public class Connection implements Runnable{
 	}
 
 	private void stop () {	
-		sendUser (User.COMMAND_DEL);
+		//sendUser (User.COMMAND_DEL);
+		this.user.setCommand (User.COMMAND_DEL);
+		sendUser ();
 		//sendServiceMassege(Server.getLocaleText("user.exit"));
 		this.send(new Command(Server.getLocaleText("server.name"), Command.CONNECT_CLOSE));
 		
@@ -145,15 +149,20 @@ public class Connection implements Runnable{
 		}
 	}
 	
-	private void sendUser (int command){							
-//		this.send(
-//				new User( this.getNickname(), command) );
+	private void sendUser () {
 		this.send(this.user);
+    }
+	
+	@Deprecated
+	private void sendUser (int command){							
+		this.send(
+				new User( this.getNickname(), command) );
+		
 	}
 	
 	private void sendListUsers () {
 		for (Connection c: connect) {
-			if (null != c && c.isConnect ()) {
+			if (null != c && c.isConnect () && this != c) {
 				User oldUser = new User (c.getNickname(), c.getIP(), User.COMMAND_ADD_OLD);
 				
 				this.sendMe (oldUser);

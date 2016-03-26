@@ -55,4 +55,14 @@ public class User extends Packet implements Serializable{
 	public String toString (){
 		return String.format("%1$s (%2$s)" ,this.getNickname(), this.getIP());
 	}
+	
+//	@Override
+//	public boolean equals (Object otherObject) {
+//	 	if (this == otherObject) return true;
+//	 	if (null == otherObject) return false;
+//	 	if (getClass() != otherObject.getClass()) return false;
+//	 	Server other = (Server) otherObject;
+//	 	return host.equals(other.getHost()) && port ==other.getPort();
+//	}
+	
 }
