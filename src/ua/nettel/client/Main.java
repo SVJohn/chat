@@ -26,11 +26,13 @@ public class Main {
 	private static Properties locale;
 	private static String KEY_BY = "message.by";
 	private static String KEY_SERVER_NAME = "server.name";
+	private static String KEY_USER_NEW = "user.new";
+	private static String KEY_USER_EXIT = "user.exit";
 	
 	private Connect connect = null;
 
 	private static Properties config;
-	private User user;
+	private static User user;
 
 	private static MainView mainView;
 	
@@ -61,7 +63,7 @@ public class Main {
 //									config.getProperty("server.host"), 
 //									Integer.parseInt(config.getProperty("server.port")) );
 		
-		this.connect = new Connect (this.user,
+		this.connect = new Connect (Main.user,
 				Main.getServerInfo() );							
 		new Thread (connect).start(); 
 	}
@@ -74,7 +76,7 @@ public class Main {
 	}
 	
 	public void send (String text) {
-		if (null != connect) connect.send( new Message(this.user.getNickname(), text) );
+		if (null != connect) connect.send( new Message(Main.getUser().getNickname(), text) );
 	}
 	
 	
@@ -89,21 +91,30 @@ public class Main {
 		Formatter message = new Formatter();
 		
 		switch ( user.getCommand() ) {
-		case User.COMMAND_ADD:
-			message.format(Main.getLocaleText("user.new"), user.getNickname () );
-			break;
 		case User.COMMAND_DEL:
-			message.format(Main.getLocaleText("user.exit"), user.getNickname () );
+			message.format(Main.getLocaleText(Main.KEY_USER_EXIT), user.getNickname () );
+			if ( user.equals( Main.getUser().toString() ) ){
+				break;
+			} else {
+				Main.mainView.removeInListUsers(user.toString());
+				break;
+			}
+		case User.COMMAND_ADD:
+			message.format(Main.getLocaleText(Main.KEY_USER_NEW), user.getNickname () );
 			break;
+
+		case User.COMMAND_ADD_OLD:
+			Main.mainView.addInListUsers (user.toString());			//break не нужен
 		default: 
 			message.close();
 			return;	
+		
 		}
 		Main.printMessage (user.getDate(), Main.getLocaleText(KEY_SERVER_NAME), message.toString());
 		message.close();
 	}
 	
-	public static void printMessage (Date date, String nickname, String message){
+	private static void printMessage (Date date, String nickname, String message){
 		Formatter formatter = new Formatter();
 		if (null == nickname ) nickname ="\t";
 		formatter.format(config.getProperty(FORMAT_MESSAGE), date, Main.getLocaleText(KEY_BY), nickname, message);
@@ -115,6 +126,10 @@ public class Main {
 	
 	public static Server getDefaultServer () {
 		return new Server(config.getProperty(SERVER_DEFAULT_KEY));
+	}
+	
+	private static User getUser () {
+		return Main.user;
 	}
 	
 	private void build () {
@@ -131,7 +146,7 @@ public class Main {
 		}
 
 		
-		this.user = new User (config.getProperty(NICKNAME_KEY));
+		Main.user = new User (config.getProperty(NICKNAME_KEY));
 		Main.mainView =  new MainView(this);						//переписать активити на использование статического маина
 		SwingUtilities.invokeLater( mainView );
 	}

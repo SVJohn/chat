@@ -18,8 +18,9 @@ public class Connection implements Runnable{
 	
 	private boolean stoped = false;
 	
-	private String nickname;
-	private String IP;
+	private User user;
+	//private String nickname;				// запокавать в объект User
+	//private String IP;						//
 	
 	private Socket socket = null;
 	
@@ -34,7 +35,7 @@ public class Connection implements Runnable{
 		//this.nickname = nickname;
 		this.connect = connect;
 		this.socket = socket;
-		this.IP = socket.getRemoteSocketAddress().toString();
+		//this.IP = socket.getRemoteSocketAddress().toString();
 		
 		try {
 //			BufferedInputStream bis = new BufferedInputStream(
@@ -48,7 +49,7 @@ public class Connection implements Runnable{
 			oos = new ObjectOutputStream (this.socket.getOutputStream());
 			ois = new ObjectInputStream (this.socket.getInputStream());
 			
-			Server.printLog (Server.getLocaleText("connection.new"), this.getIP (), Server.getCountConnections()+1); //+":" + port);
+			//Server.printLog (Server.getLocaleText("connection.new"), this.getIP (), Server.getCountConnections()+1); //+":" + port);
 		} catch (IOException e) {
 			Server.printLog(e);
 			this.stop ();
@@ -56,11 +57,13 @@ public class Connection implements Runnable{
 	}
 	
 	public String getNickname () {
-		return this.nickname;
+		//return this.nickname;
+		return this.user.getNickname();
 	}
 	
 	public String getIP () {
-		return this.IP;
+		//return this.IP;
+		return this.user.getIP();
 	}
 	
 	@Override
@@ -79,10 +82,17 @@ public class Connection implements Runnable{
 						}
 					}
 					if (newPacket.getClass().equals(User.class)) {
-						this.nickname = ( (User) newPacket).getNickname();
-
+						//this.nickname = ( (User) newPacket).getNickname();
+						
 						//sendServiceMassege(Server.getLocaleText("user.new"));
+						this.user  = (User) newPacket;
+						this.user.setIP( socket.getInetAddress() ); 
+						
+						Server.printLog (Server.getLocaleText("connection.new"), this.getNickname(), this.getIP (), Server.getCountConnections()); //+":" + port);
+						
 						sendUser (User.COMMAND_ADD);
+						sendListUsers ();
+						
 					}
 				}
 			}
@@ -123,7 +133,9 @@ public class Connection implements Runnable{
 		Server.printLog(Server.getLocaleText ("connection.close"), this.getNickname(), this.getIP(),Server.getCountConnections() );
 	}
 	
-	private void send(Packet packet) {
+	//переделать так, чтобы отправка производиласт в новом потоке (если этого не сделать, при большом количестве 
+	//пользователей поток Connection будет долго отправлять сообщения и будеть заблокорован для новых сообщений)
+	private void send(Packet packet) {					
 		for (Connection c : connect) {
 
 			if (null != c && c.isConnect ()) {
@@ -133,11 +145,21 @@ public class Connection implements Runnable{
 		}
 	}
 	
-	private void sendUser (int command){
-		this.send(
-				new User(this.getNickname(),
-						command
-						));
+	private void sendUser (int command){							
+//		this.send(
+//				new User( this.getNickname(), command) );
+		this.send(this.user);
+	}
+	
+	private void sendListUsers () {
+		for (Connection c: connect) {
+			if (null != c && c.isConnect ()) {
+				User oldUser = new User (c.getNickname(), c.getIP(), User.COMMAND_ADD_OLD);
+				
+				this.sendMe (oldUser);
+				
+			}
+		}
 	}
 	
 	@Deprecated

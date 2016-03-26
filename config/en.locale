@@ -3,9 +3,9 @@ stop.server = Server stoped
 
 server.name = Server
 
-connection.new = new connection. Client: \%s. The number of open connections: \%d
-connection.close = connection \%s\%s closed. The number of open connections: \%d
+connection.new = new connection. Client: \%s (\%s). The number of open connections: \%d
+connection.close = connection \%s (\%s) closed. The number of open connections: \%d
 
 killer.start = Killer closed connection started
-killer.connectin.closed = kill closed connection: \%s\%s. Not killed connections: \%d 
+killer.connectin.closed = kill closed connection: \%s (\%s). Not killed connections: \%d 
 

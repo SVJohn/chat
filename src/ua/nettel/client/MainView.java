@@ -60,6 +60,8 @@ public class MainView implements Runnable {
 	private JList<String> viewServers;
 	private ListModel<String> modelListServers = new DefaultListModel<>();
 	
+	private JList<String> viewUsers;
+	private ListModel<String> modelListUsers = new DefaultListModel <>();   // null;
 	
 	private JButton bSend;
 
@@ -71,8 +73,9 @@ public class MainView implements Runnable {
 
 	private Box boxServers;
 
- 
-    
+	private Box bUsers;
+
+	   
     public MainView (Main main) {
     	this.main = main;
     	//this.locale = Main.getLocale();
@@ -102,15 +105,32 @@ public class MainView implements Runnable {
 				bDisConnect.setEnabled(true);
 				if (tNewMessage.getText().length() > 0 ) bSend.setEnabled(true);
 				viewServers.setEnabled(false);
+				//viewUsers.setEnabled(true);
+				bUsers.setVisible(true);
     		} else {
 				bConnect.setEnabled(true);
 				bDisConnect.setEnabled(false);
 				bSend.setEnabled(false);
 				viewServers.setEnabled(true);
+				DefaultListModel <String> model = (DefaultListModel <String>) modelListUsers;
+				model.clear();
+				//viewUsers.setEnabled(false);
+				bUsers.setVisible(false);
     		}
     	}
     }
     
+    public void addInListUsers (String userNickName){
+    	//if (null == modelListUsers) modelListUsers = new DefaultListModel <>();
+    	DefaultListModel <String> model = (DefaultListModel <String>) modelListUsers;
+    	model.addElement(userNickName.toString());
+		int index = model.size() - 1;
+        viewUsers.ensureIndexIsVisible(index);
+    	
+    }
+    public void removeInListUsers (String userNickName){
+    
+    }
 	@Override
 	public void run() {
 		mainFrame = new JFrame();
@@ -211,8 +231,12 @@ public class MainView implements Runnable {
 		viewServers.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		new Thread(new LoadingServers()).start();
 		
-		Box bUsers = Box.createVerticalBox();
+		bUsers = Box.createVerticalBox();
 		bUsers.setBorder(new TitledBorder(Main.getLocaleText(KEY_TITLE_USERS)));
+		viewUsers = new JList<String>(modelListUsers);
+		bUsers.setVisible(false);
+		//viewServers.setMaximumSize (new Dimension(50, 10));
+		bUsers.add(new JScrollPane(viewUsers));
 		
 		
 		BorderLayout mBLayout = new BorderLayout(); 
@@ -221,6 +245,7 @@ public class MainView implements Runnable {
 		cntPane.add (messagesPane, BorderLayout.CENTER);
 		cntPane.add(buttonPanel, BorderLayout.SOUTH);
 		cntPane.add(boxServers, BorderLayout.WEST);
+		cntPane.add(bUsers, BorderLayout.EAST);
 		
 //		mainFrame.addWindowListener( new WindowAdapter() {						//фокус на tNewMessage при загрузке JFrame 
 //		    public void windowOpened( WindowEvent e ){
