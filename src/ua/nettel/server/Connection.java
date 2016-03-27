@@ -75,7 +75,7 @@ public class Connection implements Runnable{
 						this.stop();
 						break;
 						
-					case Command.ADD:System.out.println("2");
+					case Command.ADD:
 						List <Data> data = packet.getData();
 						if (null != data && 
 								null != data.get(0) && 
@@ -97,7 +97,7 @@ public class Connection implements Runnable{
 								break;
 							} 
 						}  
-						System.out.println("4");
+						
 						// ошибка авторизации:
 						Packet errorMessage = new Packet();
 						errorMessage.setCommand(new Command (Command.ERROR_SING_IN) );
@@ -145,16 +145,17 @@ public class Connection implements Runnable{
 
 	}
 
-	private void stop () {
-		if ( !this.stoped ) {
+	private void stop () { 	 
+		if ( !this.stoped ) {  
 			this.sendCommandUser(new Command(Command.CONNECT_CLOSE));
-			this.stoped = true;
+			
 		}
-		
 		
 		try {
 			Thread.sleep(SERVIS_PERIOD);
 		} catch (InterruptedException e) {		}
+		
+		this.stoped = true;
 		
 		try {
 			

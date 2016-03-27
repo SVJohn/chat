@@ -92,7 +92,7 @@ public class Connect implements Runnable {
 	public void stop() {
 		if (!stoped) {
 			Packet packet = new Packet();
-			packet.setCommand ( new Command (Command.ADD) );
+			packet.setCommand ( new Command (Command.CONNECT_CLOSE) );
 			packet.setData (this.user);
 			this.send (packet);
 			

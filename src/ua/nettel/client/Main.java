@@ -119,15 +119,16 @@ public class Main {
 		if ( null == data ) return;
 		if ( null != data && data.isEmpty()) return;
 		if (0 == data.size()) {
-			Main.printMessage (packet.getTime(), 
-						   		Main.getLocaleText(KEY_SERVER_NAME), 
-						   		String.format (Main.getLocaleText (Main.KEY_USER_NEW), data.get(0).toString()) );
+			return;
 		} else {
 			Main.mainView.addInListUsers(data);
+			Main.printMessage (packet.getTime(), 
+			   		Main.getLocaleText(KEY_SERVER_NAME), 
+			   		String.format (Main.getLocaleText (Main.KEY_USER_NEW), data.get(0).toString()) );
 		}
 		
 	}
-	public static void removeUser (Packet packet) {
+	public static void removeUser (Packet packet) {		
 		List <Data> data = packet.getData();
 		if ( null != data && !data.isEmpty() &&
 				data.get(0).getClass().equals(User.class)) 
