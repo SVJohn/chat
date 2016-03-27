@@ -4,12 +4,16 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Formatter;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
 import javax.swing.SwingUtilities;
 
+import ua.nettel.packet.Command;
+import ua.nettel.packet.Data;
 import ua.nettel.packet.Message;
+import ua.nettel.packet.Packet;
 import ua.nettel.packet.User;
 
 public class Main {
@@ -29,7 +33,7 @@ public class Main {
 	private static String KEY_USER_NEW = "user.new";
 	private static String KEY_USER_EXIT = "user.exit";
 	
-	private Connect connect = null;
+	private static Connect connect = null;
 
 	private static Properties config;
 	private static User user;
@@ -63,70 +67,84 @@ public class Main {
 //									config.getProperty("server.host"), 
 //									Integer.parseInt(config.getProperty("server.port")) );
 		
-		this.connect = new Connect (Main.user,
+		Main.connect = new Connect (Main.getUser (),
 				Main.getServerInfo() );							
 		new Thread (connect).start(); 
 	}
-	public void stopConnect () {
-		if (null != connect) this.connect.stop();
-		this.connect = null;
+	public static void stopConnect () {
+		if (null != connect) Main.connect.stop();
+		Main.connect = null;
 	}
 	public boolean isConect () {
 		return (null != connect && connect.isConnect());				
 	}
 	
 	public void send (String text) {
-		if (null != connect) connect.send( new Message(Main.getUser().getNickname(), text) );
+		if (null != connect) {
+			Packet packet = new Packet();
+			packet.setCommand(new Command(Command.MESSAGE));
+			Message message = new Message(text);
+			packet.addData(Main.getUser () );
+			packet.addData(message);
+			connect.send(packet);
+		}
 	}
 	
 	
-	public static void printMessage (Message message){
-		//Main.mainActivity.printMessage(message.toString());
-		
-		Main.printMessage(message.getDate(), message.getNickname(), message.getMassage());
+	public static void printMessage (Packet packet){
+		List <Data> data = packet.getData();
+		if ( null == data ) return;
+		if ( null != data && data.isEmpty()) return;
+		Data user = data.get(0);
+		Data message = data.get(1);
+		if ( user.getClass().equals(User.class) &&
+				message.getClass().equals(Message.class) )
+			{
+			Main.printMessage(packet.getTime(), user.toString(), message.toString());
+			}
 			
 	}
-	
-	public static void printMessage (User user) {
-		Formatter message = new Formatter();
-		
-		switch ( user.getCommand() ) {
-		case User.COMMAND_DEL:
-			message.format(Main.getLocaleText(Main.KEY_USER_EXIT), user.getNickname () );
-			System.out.println(user.toString());
-			if ( user.toString().equals( Main.getUser().toString() ) ){
-				break;
-			} else {
-				Main.mainView.removeInListUsers(user.toString());
-				break;
-			}
-		case User.COMMAND_ADD:
-			message.format(Main.getLocaleText(Main.KEY_USER_NEW), user.getNickname () );
-			Main.mainView.addInListUsers (user.toString());
-			break;
-
-		case User.COMMAND_ADD_OLD:
-			Main.mainView.addInListUsers (user.toString());			//break не нужен
-		default: 
-			message.close();
-			return;	
-		
-		}
-		Main.printMessage (user.getDate(), Main.getLocaleText(KEY_SERVER_NAME), message.toString());
-		message.close();
-	}
-	
-	private static void printMessage (Date date, String nickname, String message){
+	private static void printMessage (Date date, String userInfo, String message){
 		Formatter formatter = new Formatter();
-		if (null == nickname ) nickname ="\t";
-		formatter.format(config.getProperty(FORMAT_MESSAGE), date, Main.getLocaleText(KEY_BY), nickname, message);
+		if (null == userInfo ) userInfo ="\t";
+		formatter.format(config.getProperty(FORMAT_MESSAGE), date, Main.getLocaleText(KEY_BY), userInfo, message);
 		Main.mainView.printMessage(formatter.toString());
 		formatter.close();		
 		//Main.mainActivity.printMessage(message);
 		
 	}
 	
-	public static Server getDefaultServer () {
+	public static void addUsers (Packet packet) {
+		List <Data> data = packet.getData();
+		if ( null == data ) return;
+		if ( null != data && data.isEmpty()) return;
+		if (0 == data.size()) {
+			Main.printMessage (packet.getTime(), 
+						   		Main.getLocaleText(KEY_SERVER_NAME), 
+						   		String.format (Main.getLocaleText (Main.KEY_USER_NEW), data.get(0).toString()) );
+		} else {
+			Main.mainView.addInListUsers(data);
+		}
+		
+	}
+	public static void removeUser (Packet packet) {
+		List <Data> data = packet.getData();
+		if ( null != data && !data.isEmpty() &&
+				data.get(0).getClass().equals(User.class)) 
+		{
+			User user = (User) data.get(0);
+			Main.printMessage (packet.getTime(),
+								Main.getLocaleText(KEY_SERVER_NAME), 
+								String.format(Main.getLocaleText(Main.KEY_USER_EXIT), user.toString()) );
+			Main.mainView.removeInListUsers(user.toString());
+			if (Main.getUser().equals( user )) {
+				Main.stopConnect();
+			}
+		}
+	}
+
+	
+  	public static Server getDefaultServer () {
 		return new Server(config.getProperty(SERVER_DEFAULT_KEY));
 	}
 	

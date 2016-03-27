@@ -4,11 +4,12 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.Formatter;
+import java.util.LinkedList;
 import java.util.List;
 
+import ua.nettel.packet.Client;
 import ua.nettel.packet.Command;
-import ua.nettel.packet.Message;
+import ua.nettel.packet.Data;
 import ua.nettel.packet.Packet;
 import ua.nettel.packet.User;
 
@@ -16,11 +17,13 @@ public class Connection implements Runnable{
 	
 	private static final int SERVIS_PERIOD = 2000;
 	
+	private static final String KEY_CONNECTION_NEW = "connection.new";
+	private static final String KEY_CONNECTION_CLOSE = "connection.close";
+	private static final String KEY_SERVER_NAME = "server.name";
+	
 	private boolean stoped = false;
 	
 	private User user;
-	//private String nickname;				// запокавать в объект User
-	//private String IP;						//
 	
 	private Socket socket = null;
 	
@@ -29,27 +32,13 @@ public class Connection implements Runnable{
 	
 	private List <Connection> connect;
 	
-	
-	
-	public Connection (Socket socket, List <Connection> connect) {// throws IOException{
-		//this.nickname = nickname;
+	public Connection (Socket socket, List <Connection> connect) {
 		this.connect = connect;
 		this.socket = socket;
-		//this.IP = socket.getRemoteSocketAddress().toString();
-		
-		try {
-//			BufferedInputStream bis = new BufferedInputStream(
-//					socket.getInputStream());
-//			ois = new ObjectInputStream(bis);
-//
-//			BufferedOutputStream bos = new BufferedOutputStream(
-//					socket.getOutputStream());
-//			oos = new ObjectOutputStream(bos);
 			
+		try {
 			oos = new ObjectOutputStream (this.socket.getOutputStream());
 			ois = new ObjectInputStream (this.socket.getInputStream());
-			
-			//Server.printLog (Server.getLocaleText("connection.new"), this.getIP (), Server.getCountConnections()+1); //+":" + port);
 		} catch (IOException e) {
 			Server.printLog(e);
 			this.stop ();
@@ -58,12 +47,15 @@ public class Connection implements Runnable{
 	
 	public String getNickname () {
 		//return this.nickname;
-		return this.user.getNickname();
+		return this.user.getNickName();
 	}
 	
 	public String getIP () {
 		//return this.IP;
 		return this.user.getIP();
+	}
+	public User getUser () {
+		return this.user;
 	}
 	
 	@Override
@@ -72,30 +64,75 @@ public class Connection implements Runnable{
 			while (this.isConnect()) {
 				Object newPacket = ois.readObject();
 				if (null != newPacket && newPacket instanceof Packet) {
-					if (newPacket.getClass().equals(Message.class)) {
-						this.send((Message)newPacket );
+					Packet packet = (Packet) newPacket;
+					switch (packet.getCommand().getValue()) {
+					case Command.MESSAGE:
+						this.send (packet );
+						break;
+
+					case Command.CONNECT_CLOSE:
+						//this.stoped = true;
+						this.stop();
+						break;
+						
+					case Command.ADD:System.out.println("2");
+						List <Data> data = packet.getData();
+						if (null != data && 
+								null != data.get(0) && 
+									data.get(0).getClass().equals(Client.class)) {
+							
+							Client client = (Client) data.get(0);
+							// TODO авторизация 
+							
+							// временная затыча
+							boolean isSingIn = true; 
+							
+							if (isSingIn) {
+								this.user = new User(client.getNickName(), client.getIP());
+//								this.user = new User(client.getNickName(), 
+//													  socket.getInetAddress().getHostAddress() );
+								Server.printLog (Server.getLocaleText(KEY_CONNECTION_NEW), this.getNickname(), this.getIP (), Server.getCountConnections());  //+":" + port);
+								sendCommandUser(new Command(Command.ADD));
+								sendListUsers ();
+								break;
+							} 
+						}  
+						System.out.println("4");
+						// ошибка авторизации:
+						Packet errorMessage = new Packet();
+						errorMessage.setCommand(new Command (Command.ERROR_SING_IN) );
+						//errorMessage.setData(this.user);
+						sendMe(errorMessage);
+						this.stoped = true;
+						this.stop();
+						break;
+						
+					default:
+						break;
 					}
-					if (newPacket.getClass().equals(Command.class)) {
-						if ( ( (Command) newPacket ).getCommand() == Command.CONNECT_CLOSE ) { //System.out.println("CONNECT_CLOSSED");
-						
-							break;
-						}
-					}
-					if (newPacket.getClass().equals(User.class)) {
-						//this.nickname = ( (User) newPacket).getNickname();
-						
-						//sendServiceMassege(Server.getLocaleText("user.new"));
-						//sendUser (User.COMMAND_ADD);
-						this.user  = (User) newPacket;
-						this.user.setIP( socket.getInetAddress() ); 
-						
-						Server.printLog (Server.getLocaleText("connection.new"), this.getNickname(), this.getIP (), Server.getCountConnections()); //+":" + port);
-						
-						this.user.setCommand(User.COMMAND_ADD);
-						sendUser();
-						sendListUsers ();
-						
-					}
+//					if (newPacket.getClass().equals(Message.class)) {
+//						this.send((Message)newPacket );
+//					}
+//					if (newPacket.getClass().equals(Command.class)) {
+//						if ( ( (Command) newPacket ).getCommand() == Command.CONNECT_CLOSE ) { //System.out.println("CONNECT_CLOSSED");
+//						
+//							break;
+//						}
+//					}
+//					if (newPacket.getClass().equals(User.class)) {
+//						//this.nickname = ( (User) newPacket).getNickname();
+//						
+//						//sendServiceMassege(Server.getLocaleText("user.new"));
+//						//sendUser (User.COMMAND_ADD);
+//						this.user  = (User) newPacket;
+//						this.user.setIP( socket.getInetAddress() ); 
+//						
+//						Server.printLog (Server.getLocaleText(KEY_CONNECTION_NEW), this.getNickname(), this.getIP (), Server.getCountConnections()); //+":" + port);
+//						
+//						this.user.setCommand(User.COMMAND_ADD);
+//						sendUser();
+//						sendListUsers ();
+//					}
 				}
 			}
 		} catch (Exception e) {
@@ -108,14 +145,13 @@ public class Connection implements Runnable{
 
 	}
 
-	private void stop () {	
-		//sendUser (User.COMMAND_DEL);
-		this.user.setCommand (User.COMMAND_DEL);
-		sendUser ();
-		//sendServiceMassege(Server.getLocaleText("user.exit"));
-		this.send(new Command(Server.getLocaleText("server.name"), Command.CONNECT_CLOSE));
+	private void stop () {
+		if ( !this.stoped ) {
+			this.sendCommandUser(new Command(Command.CONNECT_CLOSE));
+			this.stoped = true;
+		}
 		
-		this.stoped = true;
+		
 		try {
 			Thread.sleep(SERVIS_PERIOD);
 		} catch (InterruptedException e) {		}
@@ -134,11 +170,12 @@ public class Connection implements Runnable{
 		} catch (IOException e) {
 			Server.printLog(e);
 		}
-		Server.printLog(Server.getLocaleText ("connection.close"), this.getNickname(), this.getIP(),Server.getCountConnections() );
+		Server.printLog(Server.getLocaleText (KEY_CONNECTION_CLOSE), this.getNickname(), this.getIP(),Server.getCountConnections() );
 	}
 	
 	//переделать так, чтобы отправка производиласт в новом потоке (если этого не сделать, при большом количестве 
 	//пользователей поток Connection будет долго отправлять сообщения и будеть заблокорован для новых сообщений)
+	
 	private void send(Packet packet) {					
 		for (Connection c : connect) {
 
@@ -149,35 +186,30 @@ public class Connection implements Runnable{
 		}
 	}
 	
-	private void sendUser () {
-		this.send(this.user);
+	private void sendCommandUser (Command command) {
+		Packet packet = new Packet();
+		//packet.setCommand ( new Command (Command.ADD) );
+		packet.setCommand ( command );
+		packet.setData (this.user);
+		this.send (packet);
     }
 	
-	@Deprecated
-	private void sendUser (int command){							
-		this.send(
-				new User( this.getNickname(), command) );
-		
-	}
 	
 	private void sendListUsers () {
+		List <Data> users = new LinkedList<>();
 		for (Connection c: connect) {
 			if (null != c && c.isConnect () && this != c) {
-				User oldUser = new User (c.getNickname(), c.getIP(), User.COMMAND_ADD_OLD);
-				
-				this.sendMe (oldUser);
-				
+				users.add(c.getUser());
 			}
+			
 		}
+		Packet packet = new Packet();
+		packet.setCommand ( new Command (Command.LIST_USER) );
+		packet.setListData (users);
+		this.sendMe (packet);
 	}
 	
-	@Deprecated
-	public void sendServiceMassege (String format) {
-		Formatter message = new Formatter();
-		message.format(format, this.getNickname () );
-		this.send(new Message( Server.getLocaleText("server.name"), message.toString() ));
-		message.close();
-	}
+
 	
 	public void sendMe (Packet packet) {
 		try {

@@ -2,67 +2,70 @@ package ua.nettel.packet;
 
 import java.io.Serializable;
 import java.net.InetAddress;
+import java.util.Objects;
 
-public class User extends Packet implements Serializable{
+public class User implements Serializable, 								//Comparable<User>,
+								Data
+{
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 2L;
 
-	public static final int COMMAND_ADD = 1;						// add new user (new connect)
-	public static final int COMMAND_DEL = 2;						// delete user (disconnect)
-	public static final int COMMAND_ADD_OLD = 3;					// add user in old users list (update list) 
-	
+	private String nickName = null;
 	private String IP = null;
-	private int command = 0;
-	
+		
 	public User(String nickname) {
-		super(nickname);
+		this.setNickName(nickname);
 		
 	}
-	public User (String nickname, int command) {
-		super (nickname);
-		this.setCommand(command);
+	public User (String nickname, String IP) {
+		this.setNickName(nickname);
+		this.setIP (IP);
 	}
 
-	public User (String nickname, String IP, int command) {
-		super (nickname);
-		this.setIP(IP);
-		this.setCommand(command);
-	}
-	
-	public void setCommand (int command) {
-		this.command = command;
+	public void setNickName (String nickname) {
+		this.nickName = nickname;
 	}
 	
 	public void setIP (String IP) {
 		this.IP = IP;
 	}
+	
 	public void setIP (InetAddress address) {
 		this.IP = address.getHostAddress();
-	}
-	
-	public int getCommand () {
-		return this.command;
 	}
 	
 	public String getIP (){
 		return this.IP;
 	}
 	
+	public String getNickName () {
+		return nickName;
+	}
+	
 	@Override
 	public String toString (){
-		return String.format("%1$s (%2$s)" ,this.getNickname(), this.getIP());
+		return String.format("%1$s (%2$s)" ,this.getNickName(), this.getIP());
+	}
+	
+	@Override
+	public boolean equals (Object other) {
+	 	if (this == other) return true;
+	 	if (null == other || getClass() != other.getClass()) return false;
+	 	User otherUser = (User) other;
+	 	return getNickName().equals(otherUser.getNickName()) 
+	 			&& getIP() ==otherUser.getIP();
+	}
+	@Override
+	public int hashCode (){
+		return Objects.hash(getNickName(),getIP());
 	}
 	
 //	@Override
-//	public boolean equals (Object otherObject) {
-//	 	if (this == otherObject) return true;
-//	 	if (null == otherObject) return false;
-//	 	if (getClass() != otherObject.getClass()) return false;
-//	 	Server other = (Server) otherObject;
-//	 	return host.equals(other.getHost()) && port ==other.getPort();
+//	public int compareTo(User other) {
+//		return toString().compareTo(other.toString());
 //	}
 	
 }

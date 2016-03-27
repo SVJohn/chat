@@ -2,29 +2,37 @@ package ua.nettel.packet;
 
 import java.io.Serializable;
 
-public class Message extends Packet implements Serializable{
+public class Message implements Serializable,
+										Data
+{
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 2L;
 
-	private final String message;
+	private String message;
 	
-	
-	public Message(String nickname, String message) {
-		super (nickname);
-		this.message = message;
+	public Message () {
+		
+	}
+	public Message (String message) {
+		this.setMessage(message);
 		
 	}
 
-
-	@Override
-	public String toString (){
-		return this.getDate().toString()+"::"+getNickname() + "::" +this.message;
+	public void setMessage (String message) {
+		this.message = message;
 	}
+
 
 	public String getMassage () {
 		return this.message;
 	}
+	
+	@Override
+	public String toString (){
+		return this.getMassage();
+	}
+
 
 }

@@ -5,9 +5,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-
+import ua.nettel.packet.Client;
 import ua.nettel.packet.Command;
-import ua.nettel.packet.Message;
 import ua.nettel.packet.Packet;
 import ua.nettel.packet.User;
 
@@ -32,21 +31,50 @@ public class Connect implements Runnable {
 
 		try {
 			while (this.isConnect()) {// while (!stoped) {
-				Object tmp = ois.readObject();
-				if (null != tmp && (tmp instanceof Packet)) {
-					if (tmp.getClass().equals(Message.class)) {
-						// System.out.println( ((Message) tmp).toString() );
-						Main.printMessage((Message) tmp);
-					}
-					if (tmp.getClass().equals(Command.class)) {
-						if (((Command) tmp).getCommand() == Command.CONNECT_CLOSE) {
-							break;
-						}
+				Object newPacket = ois.readObject();
+				if (null != newPacket && (newPacket instanceof Packet)) {
+					Packet packet = (Packet) newPacket;
+					//List <Data> data = packet.getData();
+					switch (packet.getCommand().getValue()) {
+					case Command.MESSAGE:
+						Main.printMessage(packet);
+						break;
+
+					case Command.CONNECT_CLOSE:									
+						Main.removeUser (packet);
+						//this.stoped = true;
+						//this.stop();
+						break;
+					case Command.ADD:												//add new User
+					case Command.LIST_USER:											//Users list 
+//						if ( null != data ) {// && data.get(0).getClass().equals(User.class)  ) 
+//							Main.addUsers (data);
+//						}
+						Main.addUsers (packet);
+						break;
+						
+					case Command.ERROR_SING_IN:				//обработка Ошибка авторизации
+						//TODO
+						break;
 					
+						
+					default:
+						break;
 					}
-					if (tmp.getClass().equals(User.class)){
-						Main.printMessage( (User)tmp);
-					}
+					
+//					if (tmp.getClass().equals(Message.class)) {
+//						// System.out.println( ((Message) tmp).toString() );
+//						Main.printMessage((Message) tmp);
+//					}
+//					if (tmp.getClass().equals(Command.class)) {
+//						if (((Command) tmp).getValue() == Command.CONNECT_CLOSE) {
+//							break;
+//						}
+//					
+//					}
+//					if (tmp.getClass().equals(User.class)){
+//						Main.printMessage( (User)tmp);
+//					}
 				}
 
 			}
@@ -62,8 +90,15 @@ public class Connect implements Runnable {
 	}
 
 	public void stop() {
-		this.send(new Command(user.getNickname(), Command.CONNECT_CLOSE));
-		this.stoped = true;
+		if (!stoped) {
+			Packet packet = new Packet();
+			packet.setCommand ( new Command (Command.ADD) );
+			packet.setData (this.user);
+			this.send (packet);
+			
+			this.stoped = true;
+		}
+		
 		try {
 			Thread.sleep(SERVIS_PERIOD);
 		} catch (InterruptedException e) {
@@ -122,19 +157,18 @@ public class Connect implements Runnable {
 		try {
 			socket.connect(new InetSocketAddress(this.host, this.port));
 
-			// BufferedInputStream bis = new
-			// BufferedInputStream(socket.getInputStream());
-			// ois = new ObjectInputStream (bis);
-			// BufferedOutputStream bos = new BufferedOutputStream
-			// (socket.getOutputStream());
-			// oos = new ObjectOutputStream (bos);
-
 			ois = new ObjectInputStream(this.socket.getInputStream());
 			// System.out.println("ObjectInputStream  init");
 			oos = new ObjectOutputStream(this.socket.getOutputStream());
 			// System.out.println("ObjectOutputStream  init");
-
-			this.send(this.user);
+			
+			this.user.setIP(socket.getLocalAddress().getHostAddress());
+			
+			Packet packet = new Packet ();
+			packet.setCommand(new Command(Command.ADD));
+			Client client = new Client (this.user.getNickName(),this.user.getIP());
+			packet.setData(client);
+			this.send(packet);
 			System.out.printf(Main.getLocaleText("connection.ok"), host, port);
 		} catch (IOException e) {
 			System.err.println(e);

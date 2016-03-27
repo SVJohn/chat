@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.util.List;
 //import java.awt.event.WindowAdapter;
 //import java.awt.event.WindowEvent;
 import java.util.Set;
@@ -30,6 +31,9 @@ import javax.swing.event.DocumentListener;
 
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+
+import ua.nettel.packet.Data;
+import ua.nettel.packet.User;
 
 public class MainView implements Runnable {
 	
@@ -119,15 +123,24 @@ public class MainView implements Runnable {
     		}
     	}
     }
-    
-    public void addInListUsers (String user){
-    	//if (null == modelListUsers) modelListUsers = new DefaultListModel <>();
+//    @Deprecated
+//    public void addInListUsers (String user){
+//    	//if (null == modelListUsers) modelListUsers = new DefaultListModel <>();
+//    	DefaultListModel <String> model = (DefaultListModel <String>) modelListUsers;
+//    	model.addElement(user);
+//		int index = model.size() - 1;
+//        viewUsers.ensureIndexIsVisible(index);
+//    	
+//    }
+    public void addInListUsers (List <Data> users) {
     	DefaultListModel <String> model = (DefaultListModel <String>) modelListUsers;
-    	model.addElement(user);
-		int index = model.size() - 1;
-        viewUsers.ensureIndexIsVisible(index);
-    	
+    	for (Data u: users) {
+    		model.addElement( ((User) u).toString() );
+    		int index = model.size() - 1;
+            viewUsers.ensureIndexIsVisible(index);
+    	}
     }
+    
     public void removeInListUsers (String user){
     	DefaultListModel <String> model = (DefaultListModel <String>) modelListUsers;
     	model.removeElement(user);
@@ -196,7 +209,7 @@ public class MainView implements Runnable {
 		bDisConnect.addActionListener(new ActionListener () {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				main.stopConnect();
+				Main.stopConnect();
 			}
 		});
 		bSend.addActionListener(new ActionListener () {

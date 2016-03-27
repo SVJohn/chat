@@ -2,28 +2,50 @@ package ua.nettel.packet;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 
-public abstract class Packet implements Serializable {
+public class Packet implements Serializable {
 	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 2L;
 	
-	private final String nickname;
-	private final Date date = new Date();
+	private final Date time;
+	private Command command;
+	private List <Data> data = new LinkedList<>();
 	
-	public Packet (String nickname) {
-		this.nickname = nickname;
+	public Packet () {
+		this.time = new Date();
 	}
 	
-	public String getNickname () {
-		return this.nickname;
+	public void setCommand (Command command) {
+		this.command = command;
 	}
-
-	public Date getDate () {
-		return (Date) date.clone(); 
+	
+	
+	public void setData (Data data) {
+		this.data.clear();
+		this.addData( data );
 	}
+		
+	public void setListData (List <Data> data) {
+		this.data = data;
+	}
+	public void addData (Data data) {
+		this.data.add(data);
+	}
+	
+	public Command getCommand () {
+		return this.command;
+	}
+	
+	public List <Data> getData () {
+		return this.data;
+	}
+	
+	public Date getTime () {
+		return (Date) this.time.clone();
+	}
+	
 	
 	//private Object message;
 	//abstract public Object getMessage ();

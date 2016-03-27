@@ -29,7 +29,7 @@ public class Server {
 		System.out.printf("%1$tT %1$td.%1$tm.%1$tY: %2$s \n", new Date(), text);
 	}
 	public static void printLog (Exception e){
-		Server.printLog(e.toString());
+		Server.printLog(e.getStackTrace().toString());
 	}
 	public static void printLog (String format, Object... args ) {
 		Formatter message = new Formatter();
