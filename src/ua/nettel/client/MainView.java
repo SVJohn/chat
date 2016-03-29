@@ -362,8 +362,8 @@ public class MainView implements Runnable {
 			}
 			boxServers.remove(loadingInfo);
 //			boxServers.add(new JScrollPane(viewServers));
-			mainFrame.pack();
-			
+//			mainFrame.pack();
+			boxServers.repaint();
 		}
 
 		
